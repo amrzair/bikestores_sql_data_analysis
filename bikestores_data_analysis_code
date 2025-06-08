@@ -1,0 +1,98 @@
+USE bikestores
+--1. Select all customers data who lived in CA state
+SELECT *
+FROM sales.customers
+WHERE state = 'CA';
+
+--2. Select products data with list price more than 1000
+SELECT *
+FROM production.products
+WHERE list_price > 1000;
+
+
+--3. Using order items table what's the discount and the list price after discount?
+SELECT *,
+	(list_price * discount) AS price_after_discount
+FROM sales.order_items;
+
+
+
+--4. How many orders shipped in 2017?
+SELECT COUNT(*) AS 'Ordered Shipped in 2017'
+FROM sales.orders
+WHERE shipped_date LIKE '2017%';
+
+
+--5. How many customers haven't phone numbers?
+SELECT COUNT(*) AS 'Customers without phone numbers'
+FROM sales.customers
+Where phone is NULL;
+
+
+--6. How many products in each category?
+SELECT category_id,
+	COUNT(category_id) AS 'Products Qty'
+FROM production.products
+GROUP BY category_id;
+
+--7. How many orders did every customer buy?
+SELECT customer_id,
+	COUNT(order_id) AS 'Orders per Customer'
+FROM sales.orders
+GROUP BY customer_id;
+
+--8.How many items purchased in each order
+SELECT o.order_id,
+	   SUM(i.quantity) AS order_qty
+FROM sales.orders AS o
+INNER JOIN sales.order_items AS i ON o.order_id = i.order_id
+GROUP BY o.order_id;
+
+--9.What's the products which haven't sold yet?
+SELECT product_name AS products_havent_sold_yet
+FROM production.products AS p
+FULL JOIN sales.order_items AS i ON p.product_id = i.product_id
+GROUP BY product_name
+HAVING SUM(i.quantity) IS NULL;
+
+
+--10.How many products for each Category name?
+SELECT c.category_name,
+	   COUNT(p.product_id) as products_qty
+FROM production.products AS p
+RIGHT JOIN  production.categories AS c ON c.category_id = p.category_id
+GROUP BY c.category_name;
+
+
+--11.Show the full name and email for staffs whose haven’t sales data?
+SELECT CONCAT(first_name, ' ', last_name) AS full_name,
+	   email
+FROM sales.staffs AS f
+FULL JOIN sales.orders AS o ON f.staff_id = o.staff_id
+GROUP BY CONCAT(first_name, ' ', last_name),
+		 email
+HAVING COUNT(o.order_id) = 0
+
+--12.How many products for each brand name?
+SELECT b.brand_name,
+	   COUNT(product_id) AS products_qty
+FROM production.brands AS b
+FULL JOIN production.products as p ON b.brand_id = p.brand_id
+GROUP BY brand_name
+
+
+--13.How many staffs work for each store?
+SELECT t.store_name,
+	   COUNT(t.store_id) AS number_of_staffs
+FROM sales.stores AS t
+LEFT JOIN sales.staffs AS f ON t.store_id = f.store_id
+GROUP BY t.store_name;
+
+
+--14.What’s the average price for each category?
+SELECT c.category_name,
+	   AVG(o.list_price) as average_price
+FROM production.categories AS c
+LEFT JOIN production.products AS p ON c.category_id = p.category_id
+LEFT JOIN sales.order_items AS o ON p.product_id = o.product_id
+GROUP BY c.category_name;
